@@ -1,0 +1,11 @@
+ # Ignore node_modules in all subdirectories
+**/node_modules
+
+# Ignore .env files in all subdirectories
+**/.env
+
+# Ignore build folders
+/frontend/dist
+
+# Ignore system files
+.DS_Store
