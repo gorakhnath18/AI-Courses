@@ -1,4 +1,44 @@
+ import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+
 function HomePageHero() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleRoadmapGeneration = async (event) => {
+    event.preventDefault();
+
+    // If the user isn't logged in, send them to the sign-in page.
+    if (!isAuthenticated) {
+      navigate('/sign-in');
+      return;
+    }
+
+    const topic = event.target.elements.prompt.value;
+    if (!topic) {
+      alert("Please enter a topic to explore.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // The backend will create the course shell and return the full object with its new ID.
+      const response = await axios.post('http://localhost:5000/api/generate-roadmap', { topic });
+      // Navigate to the new course page, passing the data to avoid an extra fetch.
+      navigate(`/course/${response.data._id}`, { state: { course: response.data } });
+    } catch (error) {
+      // The AuthContext interceptor will handle 401 errors automatically.
+      // This catch block is for other errors, like a 500 Internal Server Error.
+      console.error("Error generating roadmap:", error.response ? error.response.data : error.message);
+      alert("Failed to generate the course roadmap. The server might be down or an unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="text-center py-12 sm:py-20">
       <h1 className="text-4xl font-display font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
@@ -7,15 +47,27 @@ function HomePageHero() {
       <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-400 sm:text-xl">
         Enter any topic to generate a dynamic learning roadmap and dive deep into each concept on-demand.
       </p>
-      <form className="mt-10 max-w-xl mx-auto">
+      <form onSubmit={handleRoadmapGeneration} className="mt-10 max-w-xl mx-auto">
         <div className="relative">
-          <input type="text" name="prompt" className="w-full bg-gray-900 border border-gray-700 rounded-md shadow-lg px-5 py-4 text-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder='e.g., "Quantum Computing"' required />
-          <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white font-bold px-6 py-2 rounded-md shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105">
-            Explore
+          <input
+            type="text"
+            name="prompt"
+            className="w-full bg-gray-900 border border-gray-700 rounded-md shadow-lg px-5 py-4 text-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder='e.g., "Data Science"'
+            required
+            disabled={isLoading}
+          />
+          <button
+            type="submit"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white font-bold px-6 py-2 rounded-md shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 disabled:bg-blue-800 disabled:cursor-not-allowed"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Building Roadmap...' : (isAuthenticated ? 'Explore' : 'Get Started')}
           </button>
         </div>
       </form>
     </div>
   );
 }
+
 export default HomePageHero;
