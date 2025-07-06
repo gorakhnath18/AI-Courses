@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api.js';
+ import { createContext, useContext, useState, useEffect } from 'react';
+ import api from '../api.js'; 
 import { CgSpinner } from 'react-icons/cg';
 
 const AuthContext = createContext(null);
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
    const logout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout');
+       await api.post('/auth/logout');
     } catch (error) {
       console.error("Logout request failed, but clearing client state anyway.", error);
     } finally {
@@ -27,13 +27,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-     const responseInterceptor = axios.interceptors.response.use(
+      const responseInterceptor = api.interceptors.response.use(
        response => response,
        async (error) => {
          if (error.response?.status === 401) {
           console.log("Session expired or token is invalid. Automatically logging out.");
            if (isAuthenticated) {
-             setIsAuthenticated(false);
+              logout();
           }
         }
          return Promise.reject(error);
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
      const verifyUser = async () => {
       try {
-         const response = await api.get('/auth/verify');
+        const response = await api.get('/auth/verify');
         setIsAuthenticated(response.data.loggedIn);
       } catch (error) {
          setIsAuthenticated(false);
@@ -53,10 +53,11 @@ export const AuthProvider = ({ children }) => {
     verifyUser();
     
      return () => {
-      axios.interceptors.response.eject(responseInterceptor);
+       api.interceptors.response.eject(responseInterceptor);
     };
 
   }, [isAuthenticated]);  
+  
   const login = async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
     if (response.status === 200) {
@@ -65,8 +66,8 @@ export const AuthProvider = ({ children }) => {
     return response;
   };
 
-  const register = (email, password) => {
-    return axios.post('http://localhost:5000/api/auth/register', { email, password });
+   const register = (email, password) => {
+     return api.post('/auth/register', { email, password });
   };
   
    if (isLoading) {
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     isAuthenticated,
-    isLoading: !isLoading,  
+    isLoading,  
     login,
     register,
     logout,
