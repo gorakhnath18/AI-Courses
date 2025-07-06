@@ -1,7 +1,6 @@
-// src/components/Footer.jsx
-
+ 
 function Footer() {
-  const currentYear = new Date().getFullYear(); // Automatically gets the current year
+  const currentYear = new Date().getFullYear(); 
 
   return (
     <footer className="bg-gray-900 border-t border-gray-700 mt-12 py-6">

@@ -14,8 +14,7 @@ function CoursePage() {
   const location = useLocation();
   const { courseId } = useParams();
 
-  // Effect 1: Handles loading the initial course data (roadmap)
-  useEffect(() => {
+   useEffect(() => {
     const loadCourse = async () => {
       setIsLoading(true);
       setActiveModule(null);
@@ -36,24 +35,17 @@ function CoursePage() {
     loadCourse();
   }, [courseId, location.state]);
 
-  // --- THIS IS THE NEW FEATURE ---
-  // Effect 2: Automatically generate the first module when a new course is loaded.
-  useEffect(() => {
-    // Check if the course has loaded, if it came from the generation page, and if no module is currently active/loading.
-    if (course && location.state?.course && !activeModule && !loadingModuleTitle) {
-      // Find the first module from the roadmap.
-      const firstModule = course.roadmap[0];
+    useEffect(() => {
+     if (course && location.state?.course && !activeModule && !loadingModuleTitle) {
+       const firstModule = course.roadmap[0];
       if (firstModule) {
         console.log("Auto-generating first module:", firstModule.title);
-        // Call the same handler that a user click would trigger.
-        handleModuleClick(firstModule);
+         handleModuleClick(firstModule);
       }
     }
-    // This effect runs only when the `course` state changes.
-  }, [course]);
+   }, [course]);
 
-  // This function is triggered when a user clicks a module in the sidebar
-  const handleModuleClick = async (module) => {
+   const handleModuleClick = async (module) => {
     if (loadingModuleTitle) return;
     const existingLesson = course.lessons.find(l => l.title === module.title && l.isGenerated);
     if (existingLesson) {

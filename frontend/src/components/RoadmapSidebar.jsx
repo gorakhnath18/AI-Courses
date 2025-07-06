@@ -1,4 +1,4 @@
- import { CgSpinner } from 'react-icons/cg';
+import { CgSpinner } from 'react-icons/cg';
 
 function RoadmapSidebar({ roadmap, onModuleClick, activeModuleTitle, loadingModuleTitle }) {
   return (
@@ -7,10 +7,10 @@ function RoadmapSidebar({ roadmap, onModuleClick, activeModuleTitle, loadingModu
       <ul className="space-y-2">
         {roadmap.map((module) => (
           <li key={module.title}>
-            {/* This button now correctly calls the function passed from the parent */}
+            { }
             <button
               onClick={() => onModuleClick(module)}
-              disabled={!!loadingModuleTitle} // Disable all buttons if any module is loading
+              disabled={!!loadingModuleTitle}  
               className={`w-full text-left p-3 rounded-md transition-all duration-200 text-sm flex justify-between items-center
                 ${activeModuleTitle === module.title
                   ? 'bg-blue-600 text-white font-bold'
@@ -20,7 +20,7 @@ function RoadmapSidebar({ roadmap, onModuleClick, activeModuleTitle, loadingModu
               `}
             >
               <span>{module.title}</span>
-              {/* Show spinner only on the specific button that is currently being generated */}
+              { }
               {loadingModuleTitle === module.title && <CgSpinner className="animate-spin" size={20} />}
             </button>
           </li>

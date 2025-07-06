@@ -1,4 +1,4 @@
- import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { CgSpinner } from 'react-icons/cg';
@@ -7,8 +7,7 @@ function MyCoursesPage() {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to fetch all saved courses from our API
-  useEffect(() => {
+   useEffect(() => {
     const fetchCourses = async () => {
       setIsLoading(true);
       try {
@@ -24,16 +23,14 @@ function MyCoursesPage() {
     fetchCourses();
   }, []);
 
-  // Function to handle the deletion of a course
-  const handleDelete = async (courseId, event) => {
-    event.preventDefault(); // Prevent the <Link> from navigating
-    event.stopPropagation(); // Stop the click from bubbling up to the parent Link
+   const handleDelete = async (courseId, event) => {
+    event.preventDefault(); 
+    event.stopPropagation();  
 
     if (window.confirm('Are you sure you want to permanently delete this course?')) {
       try {
         await axios.delete(`http://localhost:5000/api/courses/${courseId}`);
-        // Update the UI instantly by filtering the deleted course out of state
-        setCourses(currentCourses => currentCourses.filter(course => course._id !== courseId));
+         setCourses(currentCourses => currentCourses.filter(course => course._id !== courseId));
       } catch (error) {
         console.error('Failed to delete course:', error);
         alert('Could not delete the course. Please try again.');

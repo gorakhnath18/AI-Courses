@@ -1,5 +1,4 @@
-// 1. Prompt for the initial high-level roadmap.
-export const getRoadmapPrompt = (topic) => {
+ export const getRoadmapPrompt = (topic) => {
   return `You are a world-class curriculum designer. Your task is to create a high-level learning roadmap for a complex topic.
 The user's topic is: "${topic}"
 
@@ -75,9 +74,7 @@ The output MUST be a valid JSON object containing a single key 'deeperExplanatio
 `;
 };
 
- // ... (The other prompts getRoadmapPrompt, getModuleDetailPrompt, etc. are unchanged)
-
-// 4. Prompt for generating quizzes (Updated with a strong example)
+ 
 export const getQuizPrompt = (lessonTopic, questionCount) => {
   return `You are a quiz generation expert.
 Your task is to generate a practice quiz based on a specific lesson topic.
@@ -116,8 +113,7 @@ Each question object must have a 'type', 'question', an array of exactly 4 strin
 `;
 };
 
-// ... (getSearchAnswerPrompt is unchanged)
-
+ 
 // 5. Prompt for the in-module search bar functionality
 export const getSearchAnswerPrompt = (contextNotes, userQuestion) => {
   return `You are a friendly and patient tutor. A student is reading a lesson and has a specific follow-up question.

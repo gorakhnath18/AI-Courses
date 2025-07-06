@@ -1,4 +1,4 @@
- import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,7 +16,7 @@ export default function SignInPage() {
     setIsLoading(true);
     try {
       await login(email, password);
-      navigate('/'); // Redirect to the Home Page on successful login
+      navigate('/'); 
     } catch (err) {
       setError(err.response?.data?.msg || 'Failed to sign in. Please check your credentials.');
     } finally {

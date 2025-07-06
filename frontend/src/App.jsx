@@ -1,4 +1,3 @@
- // src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -17,7 +16,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <div className="min-h-screen bg-gray-800 text-gray-300 flex flex-col">
-      {/* This is the single, top-level Router for the entire app */}
+      { }
       <Router> 
         <Navbar />
         <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex-grow">

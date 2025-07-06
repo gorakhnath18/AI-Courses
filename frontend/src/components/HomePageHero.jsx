@@ -1,4 +1,4 @@
- import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -11,8 +11,7 @@ function HomePageHero() {
   const handleRoadmapGeneration = async (event) => {
     event.preventDefault();
 
-    // If the user isn't logged in, send them to the sign-in page.
-    if (!isAuthenticated) {
+     if (!isAuthenticated) {
       navigate('/sign-in');
       return;
     }
@@ -25,14 +24,10 @@ function HomePageHero() {
 
     setIsLoading(true);
     try {
-      // The backend will create the course shell and return the full object with its new ID.
-      const response = await axios.post('http://localhost:5000/api/generate-roadmap', { topic });
-      // Navigate to the new course page, passing the data to avoid an extra fetch.
-      navigate(`/course/${response.data._id}`, { state: { course: response.data } });
+       const response = await axios.post('http://localhost:5000/api/generate-roadmap', { topic });
+       navigate(`/course/${response.data._id}`, { state: { course: response.data } });
     } catch (error) {
-      // The AuthContext interceptor will handle 401 errors automatically.
-      // This catch block is for other errors, like a 500 Internal Server Error.
-      console.error("Error generating roadmap:", error.response ? error.response.data : error.message);
+        console.error("Error generating roadmap:", error.response ? error.response.data : error.message);
       alert("Failed to generate the course roadmap. The server might be down or an unexpected error occurred.");
     } finally {
       setIsLoading(false);

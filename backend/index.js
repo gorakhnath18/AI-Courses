@@ -19,7 +19,6 @@ import User from './models/User.js';
 import Course from './models/Course.js';
 import { findBestYouTubeVideos } from './services/youtubeService.js';
 
-// --- Initialize & DB Connection ---
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -103,7 +102,7 @@ const authMiddleware = (req, res, next) => {
     } catch (e) { res.status(401).json({ msg: 'Token is not valid' }); }
 };
 
-// --- PROTECTED API ROUTES ---
+// PROTECTED API ROUTES 
 
 app.post('/api/generate-roadmap', authMiddleware, async (req, res) => {
   try {
@@ -173,7 +172,7 @@ app.post('/api/search-module', authMiddleware, async (req, res) => {
   }
 });
 
-// THIS IS THE CORRECTED AND IMPLEMENTED ROUTE
+// THIS IS  IMPLEMENTED ROUTE
 app.post('/api/fetch-videos', authMiddleware, async (req, res) => {
   try {
     const { query } = req.body;
@@ -222,7 +221,6 @@ app.post('/api/generate-quiz', authMiddleware, async (req, res) => {
   } catch (error) { res.status(500).json({ error: 'Failed to generate quiz.' }); }
 });
 
-// --- Start the Server ---
-app.listen(port, () => {
+ app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

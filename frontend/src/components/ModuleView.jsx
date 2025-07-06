@@ -1,4 +1,4 @@
- import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import EmbeddedVideo from './EmbeddedVideo';
 import Flashcard from './Flashcard';
@@ -6,8 +6,7 @@ import Quiz from './Quiz';
 import { CgSpinner } from 'react-icons/cg';
 import { FaYoutube, FaLightbulb, FaExpandArrowsAlt, FaQuestionCircle, FaUser, FaRobot } from 'react-icons/fa';
 
-// A sub-component for the interactive deep dive chips
-const DeepDiveChip = ({ text, onClick, isLoading }) => (
+ const DeepDiveChip = ({ text, onClick, isLoading }) => (
     <button 
       onClick={onClick}
       disabled={isLoading}
@@ -19,8 +18,7 @@ const DeepDiveChip = ({ text, onClick, isLoading }) => (
 );
 
 function ModuleView({ moduleData }) {
-  // --- State Management ---
-  const [quizData, setQuizData] = useState(null);
+   const [quizData, setQuizData] = useState(null);
   const [questionCount, setQuestionCount] = useState(3);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
   const [videos, setVideos] = useState([]);
@@ -32,8 +30,7 @@ function ModuleView({ moduleData }) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  // --- Effects ---
-  useEffect(() => {
+   useEffect(() => {
     setVideos([]);
     setAreVideosLoading(false);
     setDeepDiveContent('');
@@ -46,8 +43,7 @@ function ModuleView({ moduleData }) {
     setSearchError('');
   }, [moduleData]);
 
-  // --- Event Handlers ---
-
+ 
   const handleFetchVideos = async () => {
     setAreVideosLoading(true);
     try {
@@ -116,11 +112,9 @@ function ModuleView({ moduleData }) {
     }
   };
   
-  // --- Data Parsing ---
-  const deepDiveTopics = moduleData?.deepDiveTopics || [];
+   const deepDiveTopics = moduleData?.deepDiveTopics || [];
 
-  // --- Render Logic ---
-  if (!moduleData) {
+   if (!moduleData) {
     return (
       <div className="flex items-center justify-center h-full bg-gray-900 border border-gray-700 rounded-lg p-8">
         <p className="text-gray-400 text-xl">Select a module from the roadmap to begin your learning journey.</p>
@@ -191,8 +185,7 @@ function ModuleView({ moduleData }) {
             <span>{videos.length > 0 ? 'Videos Loaded' : 'Show Relevant Videos'}</span>
         </button>
         {videos.length > 0 && (
-             // This is the NEW code
-          <div className="grid grid-cols-1 gap-6 mt-4">
+           <div className="grid grid-cols-1 gap-6 mt-4">
            {videos.map(video => <EmbeddedVideo key={video.videoId} {...video} />)}
           </div>
         )}

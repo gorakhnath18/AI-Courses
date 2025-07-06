@@ -15,7 +15,7 @@ export async function findBestYouTubeVideos(query, maxResults = 2) {
       maxResults: maxResults,
       order: 'relevance',
       videoDefinition: 'high',
-      videoCategoryId: '27', // YouTube's Category ID for "Education"
+      videoCategoryId: '27', 
     });
 
     if (response.data.items) {

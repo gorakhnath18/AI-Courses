@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 function Navbar() {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // We need this to check the current path
+  const location = useLocation();  
 
   const handleLogout = async () => {
     try {
@@ -15,7 +15,7 @@ function Navbar() {
     }
   };
 
-  // --- CSS Classes ---
+   
   const baseLinkClass = "px-4 py-2 rounded-md text-sm font-bold transition-all duration-300 transform hover:scale-105";
   const activeAuthLinkClass = "bg-blue-600 text-white shadow-lg shadow-blue-500/30";
   const inactiveAuthLinkClass = "bg-gray-700 text-gray-300 hover:bg-gray-600";
@@ -31,7 +31,7 @@ function Navbar() {
           
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              // --- LOGGED-IN VIEW ---
+               
               <>
                 <NavLink
                   to="/my-courses"
@@ -49,13 +49,11 @@ function Navbar() {
                 </button>
               </>
             ) : (
-              // --- LOGGED-OUT VIEW (UPDATED) ---
-              <>
+               <>
                 <NavLink
                   to="/sign-in"
                   className={({ isActive }) => {
-                    // Make the Sign In button active on the home page ('/') OR on the sign-in page itself.
-                    const isHomePage = location.pathname === '/';
+                     const isHomePage = location.pathname === '/';
                     return `${baseLinkClass} ${isActive || isHomePage ? activeAuthLinkClass : inactiveAuthLinkClass}`;
                   }}
                 >

@@ -1,4 +1,4 @@
- import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,14 +22,11 @@ export default function SignUpPage() {
     }
 
     try {
-      // Step 1: Register the new user
-      await register(email, password);
+       await register(email, password);
 
-      // Step 2: Immediately log them in with the same credentials
-      await login(email, password);
+       await login(email, password);
 
-      // Step 3: Redirect them to the Home Page
-      navigate('/');
+       navigate('/');
 
     } catch (err) {
       setError(err.response?.data?.msg || 'Failed to register. The email might already be in use.');
