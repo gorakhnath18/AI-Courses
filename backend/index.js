@@ -33,24 +33,26 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationCo
 // --- Middleware ---
 
 // --- THIS IS THE CRITICAL UPDATE FOR DEPLOYMENT ---
- const allowedOrigins = [
+// Define a list of allowed origins (your local frontend and your live frontend)
+const allowedOrigins = [
     'http://localhost:5173',                   // For local development
-    'https://course-ai-brown.vercel.app/'         // YOUR LIVE VERCEL URL
+    'https://course-ai-brown.vercel.app'         // YOUR LIVE VERCEL URL
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
+    // Allow requests with no origin (like Postman or mobile apps) and requests from the whitelisted origins.
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+      callback(new Error(msg), false);
     }
-    return callback(null, true);
   },
   methods: ['GET', 'POST', 'DELETE'],
   credentials: true
 }));
+// --- END OF CRITICAL UPDATE ---
 
 app.use(cookieParser());
 app.use(express.json());
