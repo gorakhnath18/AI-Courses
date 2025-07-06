@@ -19,6 +19,7 @@ import User from './models/User.js';
 import Course from './models/Course.js';
 import { findBestYouTubeVideos } from './services/youtubeService.js';
 
+// --- Initialize & DB Connection ---
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -30,11 +31,27 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
 
 // --- Middleware ---
+
+// --- THIS IS THE CRITICAL UPDATE FOR DEPLOYMENT ---
+ const allowedOrigins = [
+    'http://localhost:5173',                   // For local development
+    'https://course-ai-brown.vercel.app/'         // YOUR LIVE VERCEL URL
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'DELETE'],
   credentials: true
 }));
+
 app.use(cookieParser());
 app.use(express.json());
 
@@ -102,7 +119,7 @@ const authMiddleware = (req, res, next) => {
     } catch (e) { res.status(401).json({ msg: 'Token is not valid' }); }
 };
 
-// PROTECTED API ROUTES 
+// --- PROTECTED API ROUTES ---
 
 app.post('/api/generate-roadmap', authMiddleware, async (req, res) => {
   try {
@@ -172,7 +189,6 @@ app.post('/api/search-module', authMiddleware, async (req, res) => {
   }
 });
 
-// THIS IS  IMPLEMENTED ROUTE
 app.post('/api/fetch-videos', authMiddleware, async (req, res) => {
   try {
     const { query } = req.body;
@@ -221,6 +237,7 @@ app.post('/api/generate-quiz', authMiddleware, async (req, res) => {
   } catch (error) { res.status(500).json({ error: 'Failed to generate quiz.' }); }
 });
 
- app.listen(port, () => {
+// --- Start the Server ---
+app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
