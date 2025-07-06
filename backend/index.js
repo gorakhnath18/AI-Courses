@@ -31,17 +31,12 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
 
 // --- Middleware ---
-
-// --- THIS IS THE CRITICAL UPDATE FOR DEPLOYMENT ---
-// Define a list of allowed origins (your local frontend and your live frontend)
 const allowedOrigins = [
-    'http://localhost:5173',                   // For local development
-    'https://course-ai-brown.vercel.app'         // YOUR LIVE VERCEL URL
+    'http://localhost:5173',
+    'https://course-ai-brown.vercel.app'
 ];
-
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like Postman or mobile apps) and requests from the whitelisted origins.
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -52,8 +47,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'DELETE'],
   credentials: true
 }));
-// --- END OF CRITICAL UPDATE ---
-
 app.use(cookieParser());
 app.use(express.json());
 
@@ -66,7 +59,6 @@ function cleanAndParseJson(text) {
 }
 
 // --- PUBLIC ROUTES ---
-
 app.get('/', (req, res) => {
   res.status(200).send('Welcome to the AI Courses Backend API!');
 });
@@ -85,6 +77,7 @@ app.post('/api/auth/register', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- UPDATED LOGIN ROUTE ---
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -92,13 +85,30 @@ app.post('/api/auth/login', async (req, res) => {
     if (!user) return res.status(401).json({ msg: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ msg: 'Invalid credentials' });
+    
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 }).json({ msg: 'Logged in successfully' });
+    
+    // Explicitly set cookie options for cross-site deployment
+    res.cookie('token', token, { 
+        httpOnly: true, 
+        secure: true, // Must be true for SameSite=None
+        sameSite: 'None', // Allows Vercel to send cookie to Render
+        path: '/',
+        maxAge: 24 * 60 * 60 * 1000 
+    }).json({ msg: 'Logged in successfully' });
+
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- UPDATED LOGOUT ROUTE ---
 app.post('/api/auth/logout', (req, res) => {
-    res.cookie('token', '', { httpOnly: true, expires: new Date(0) }).json({ msg: 'Logged out successfully' });
+    res.cookie('token', '', { 
+      httpOnly: true, 
+      secure: true,
+      sameSite: 'None',
+      path: '/',
+      expires: new Date(0) 
+    }).json({ msg: 'Logged out successfully' });
 });
 
 app.get('/api/auth/verify', (req, res) => {
