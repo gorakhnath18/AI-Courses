@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import api from '../api'; 
 import EmbeddedVideo from './EmbeddedVideo';
 import Flashcard from './Flashcard';
 import Quiz from './Quiz';
 import { CgSpinner } from 'react-icons/cg';
 import { FaYoutube, FaLightbulb, FaExpandArrowsAlt, FaQuestionCircle, FaUser, FaRobot } from 'react-icons/fa';
 
- const DeepDiveChip = ({ text, onClick, isLoading }) => (
+const DeepDiveChip = ({ text, onClick, isLoading }) => (
     <button 
       onClick={onClick}
       disabled={isLoading}
@@ -18,7 +19,8 @@ import { FaYoutube, FaLightbulb, FaExpandArrowsAlt, FaQuestionCircle, FaUser, Fa
 );
 
 function ModuleView({ moduleData }) {
-   const [quizData, setQuizData] = useState(null);
+  // State Management
+  const [quizData, setQuizData] = useState(null);
   const [questionCount, setQuestionCount] = useState(3);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
   const [videos, setVideos] = useState([]);
@@ -29,8 +31,11 @@ function ModuleView({ moduleData }) {
   const [qaHistory, setQaHistory] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const navigate = useNavigate(); // For redirecting on auth errors
 
-   useEffect(() => {
+  // Effects
+  useEffect(() => {
+    // Reset all temporary states when a new module is selected
     setVideos([]);
     setAreVideosLoading(false);
     setDeepDiveContent('');
@@ -43,34 +48,45 @@ function ModuleView({ moduleData }) {
     setSearchError('');
   }, [moduleData]);
 
- 
+  // A helper function to handle API errors, especially auth errors
+  const handleApiError = (error, defaultMessage = "An unexpected error occurred.") => {
+    console.error("API Error:", error);
+    if (error.response?.status === 401) {
+      alert("Your session has expired. Please sign in again.");
+      navigate('/sign-in');
+    } else {
+      alert(error.response?.data?.error || defaultMessage);
+    }
+  };
+
+  // Event Handlers (now using the centralized 'api' instance)
+
   const handleFetchVideos = async () => {
     setAreVideosLoading(true);
     try {
-        const videoSearchQuery = `${moduleData.title} tutorial explained`;
-        const response = await axios.post('http://localhost:5000/api/fetch-videos', { query: videoSearchQuery });
-        setVideos(response.data);
+      const videoSearchQuery = `${moduleData.title} tutorial explained`;
+      const response = await api.post('/fetch-videos', { query: videoSearchQuery });
+      setVideos(response.data);
     } catch (error) {
-        console.error("Error fetching videos:", error);
-        alert("Could not fetch videos at this time.");
+      handleApiError(error, "Could not fetch videos at this time.");
     } finally {
-        setAreVideosLoading(false);
+      setAreVideosLoading(false);
     }
   };
 
   const handleDeepDive = async (topic) => {
     setDeepDiveTopic(topic);
     try {
-        const combinedNotes = Array.isArray(moduleData.notes) ? moduleData.notes.join('\n') : moduleData.notes;
-        const response = await axios.post('http://localhost:5000/api/deep-dive', {
-            originalText: combinedNotes,
-            subTopic: topic,
-        });
-        setDeepDiveContent(prev => prev + `\n\n--- Deeper Explanation: ${topic} ---\n\n` + response.data.deeperExplanation);
+      const combinedNotes = Array.isArray(moduleData.notes) ? moduleData.notes.join('\n') : moduleData.notes;
+      const response = await api.post('/deep-dive', {
+        originalText: combinedNotes,
+        subTopic: topic,
+      });
+      setDeepDiveContent(prev => prev + `\n\n--- Deeper Explanation: ${topic} ---\n\n` + response.data.deeperExplanation);
     } catch (error) {
-        alert("Could not generate a deeper explanation.");
+      handleApiError(error, "Could not generate a deeper explanation.");
     } finally {
-        setDeepDiveTopic('');
+      setDeepDiveTopic('');
     }
   };
   
@@ -78,13 +94,13 @@ function ModuleView({ moduleData }) {
     setIsQuizLoading(true);
     setQuizData(null);
     try {
-      const response = await axios.post('http://localhost:5000/api/generate-quiz', {
+      const response = await api.post('/generate-quiz', {
         lessonTopic: moduleData.title,
         questionCount: questionCount
       });
       setQuizData(response.data);
     } catch (error) {
-      alert("Sorry, we couldn't generate a quiz right now.");
+      handleApiError(error, "Sorry, we couldn't generate a quiz right now.");
     } finally {
       setIsQuizLoading(false);
     }
@@ -97,29 +113,25 @@ function ModuleView({ moduleData }) {
     setIsSearching(true);
     setSearchError('');
     try {
-        const combinedNotes = Array.isArray(moduleData.notes) ? moduleData.notes.join('\n') : moduleData.notes;
-        const response = await axios.post('http://localhost:5000/api/search-module', {
-            contextNotes: combinedNotes,
-            userQuestion: currentQuestion,
-        });
-        setQaHistory(prevHistory => [ ...prevHistory, { question: currentQuestion, answer: response.data.answer } ]);
-        setSearchQuery('');
+      const combinedNotes = Array.isArray(moduleData.notes) ? moduleData.notes.join('\n') : moduleData.notes;
+      const response = await api.post('/search-module', {
+        contextNotes: combinedNotes,
+        userQuestion: currentQuestion,
+      });
+      setQaHistory(prevHistory => [ ...prevHistory, { question: currentQuestion, answer: response.data.answer } ]);
+      setSearchQuery('');
     } catch (error) {
-        console.error("Error fetching search answer:", error);
-        setSearchError(error.response?.data?.error || "Sorry, I couldn't find an answer to that question right now.");
+      handleApiError(error, "Sorry, I couldn't find an answer to that question right now.");
+      setSearchError(error.response?.data?.error || "An error occurred.");
     } finally {
-        setIsSearching(false);
+      setIsSearching(false);
     }
   };
   
-   const deepDiveTopics = moduleData?.deepDiveTopics || [];
-
-   if (!moduleData) {
-    return (
-      <div className="flex items-center justify-center h-full bg-gray-900 border border-gray-700 rounded-lg p-8">
-        <p className="text-gray-400 text-xl">Select a module from the roadmap to begin your learning journey.</p>
-      </div>
-    );
+  // Data Parsing & Render Logic (no changes here)
+  const deepDiveTopics = moduleData?.deepDiveTopics || [];
+  if (!moduleData) {
+    return ( <div className="flex items-center justify-center h-full bg-gray-900 border border-gray-700 rounded-lg p-8"><p className="text-gray-400 text-xl">Select a module from the roadmap to begin your learning journey.</p></div> );
   }
 
   return (
@@ -130,11 +142,7 @@ function ModuleView({ moduleData }) {
         {Array.isArray(moduleData.notes) ? moduleData.notes.map((p, i) => <p key={i}>{p}</p>) : <p>{moduleData.notes}</p>}
       </div>
       
-      {deepDiveContent && (
-          <div className="bg-gray-800/50 p-4 rounded-lg border border-blue-900/50">
-              <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{deepDiveContent}</p>
-          </div>
-      )}
+      {deepDiveContent && ( <div className="bg-gray-800/50 p-4 rounded-lg border border-blue-900/50"><p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{deepDiveContent}</p></div> )}
 
       {deepDiveTopics.length > 0 && (
           <div className="border-t border-gray-700 pt-6">
@@ -150,25 +158,11 @@ function ModuleView({ moduleData }) {
         <div className="space-y-6 mb-4 max-h-[400px] overflow-y-auto pr-2">
           {qaHistory.map((qa, index) => (
             <div key={index} className="space-y-4">
-              <div className="flex justify-end">
-                <div className="bg-blue-900/50 p-4 rounded-lg max-w-xl">
-                  <div className="flex items-center gap-2 mb-2"><FaUser className="text-blue-300" /><span className="font-bold text-blue-300">You</span></div>
-                  <p className="text-gray-200">{qa.question}</p>
-                </div>
-              </div>
-              <div className="flex justify-start">
-                <div className="bg-green-900/50 border border-green-700/50 p-4 rounded-lg max-w-xl">
-                    <div className="flex items-center gap-2 mb-2"><FaRobot className="text-green-300" /><span className="font-bold text-green-300">Course.ai</span></div>
-                  <p className="text-gray-200 whitespace-pre-wrap">{qa.answer}</p>
-                </div>
-              </div>
+              <div className="flex justify-end"><div className="bg-blue-900/50 p-4 rounded-lg max-w-xl"><div className="flex items-center gap-2 mb-2"><FaUser className="text-blue-300" /><span className="font-bold text-blue-300">You</span></div><p className="text-gray-200">{qa.question}</p></div></div>
+              <div className="flex justify-start"><div className="bg-green-900/50 border border-green-700/50 p-4 rounded-lg max-w-xl"><div className="flex items-center gap-2 mb-2"><FaRobot className="text-green-300" /><span className="font-bold text-green-300">Course.ai</span></div><p className="text-gray-200 whitespace-pre-wrap">{qa.answer}</p></div></div>
             </div>
           ))}
-          {isSearching && (
-            <div className="flex justify-start mb-4">
-              <div className="bg-gray-800 p-4 rounded-lg inline-flex items-center gap-2"><CgSpinner className="animate-spin text-gray-400" /><span className="text-gray-400 italic">Thinking...</span></div>
-            </div>
-          )}
+          {isSearching && ( <div className="flex justify-start mb-4"><div className="bg-gray-800 p-4 rounded-lg inline-flex items-center gap-2"><CgSpinner className="animate-spin text-gray-400" /><span className="text-gray-400 italic">Thinking...</span></div></div>)}
           {searchError && <p className="text-red-400 mb-4">{searchError}</p>}
         </div>
         <form onSubmit={handleSearchSubmit} className="flex gap-2 sticky bottom-0 bg-gray-900 py-2">

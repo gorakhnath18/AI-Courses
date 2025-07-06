@@ -1,5 +1,5 @@
- import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api.js';
 import { CgSpinner } from 'react-icons/cg';
 
 const AuthContext = createContext(null);
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
      const verifyUser = async () => {
       try {
-         const response = await axios.get('http://localhost:5000/api/auth/verify');
+         const response = await api.get('/auth/verify');
         setIsAuthenticated(response.data.loggedIn);
       } catch (error) {
          setIsAuthenticated(false);
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   }, [isAuthenticated]);  
   const login = async (email, password) => {
-    const response = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+    const response = await api.post('/auth/login', { email, password });
     if (response.status === 200) {
       setIsAuthenticated(true);
     }

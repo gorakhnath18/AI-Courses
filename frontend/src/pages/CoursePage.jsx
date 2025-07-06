@@ -1,6 +1,6 @@
- import { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import api from '../api'; 
 import RoadmapSidebar from '../components/RoadmapSidebar';
 import ModuleView from '../components/ModuleView';
 import { CgSpinner } from 'react-icons/cg';
@@ -13,8 +13,9 @@ function CoursePage() {
 
   const location = useLocation();
   const { courseId } = useParams();
+  const navigate = useNavigate(); 
 
-   useEffect(() => {
+  useEffect(() => {
     const loadCourse = async () => {
       setIsLoading(true);
       setActiveModule(null);
@@ -22,52 +23,64 @@ function CoursePage() {
         if (location.state?.course) {
           setCourse(location.state.course);
         } else if (courseId) {
-          const response = await axios.get(`http://localhost:5000/api/courses/${courseId}`);
+           const response = await api.get(`/courses/${courseId}`);
           setCourse(response.data);
         }
       } catch (error) {
         console.error("Failed to load course:", error);
+        if (error.response?.status === 401) {
+            alert("Your session has expired. Please sign in again.");
+            navigate('/sign-in');
+        }
         setCourse(null);
       } finally {
         setIsLoading(false);
       }
     };
     loadCourse();
-  }, [courseId, location.state]);
+  }, [courseId, location.state, navigate]);
 
-    useEffect(() => {
-     if (course && location.state?.course && !activeModule && !loadingModuleTitle) {
-       const firstModule = course.roadmap[0];
+   useEffect(() => {
+    if (course && location.state?.course && !activeModule && !loadingModuleTitle) {
+      const firstModule = course.roadmap[0];
       if (firstModule) {
         console.log("Auto-generating first module:", firstModule.title);
-         handleModuleClick(firstModule);
+        handleModuleClick(firstModule);
       }
     }
-   }, [course]);
+  }, [course]);
 
-   const handleModuleClick = async (module) => {
+  const handleModuleClick = async (module) => {
     if (loadingModuleTitle) return;
+    
     const existingLesson = course.lessons.find(l => l.title === module.title && l.isGenerated);
     if (existingLesson) {
       setActiveModule(existingLesson);
       return;
     }
+
     setLoadingModuleTitle(module.title);
     try {
-      const url = `http://localhost:5000/api/courses/${course._id}/generate-module`;
-      const response = await axios.post(url, {
+       const response = await api.post(`/courses/${course._id}/generate-module`, {
         moduleTitle: module.title,
         moduleDescription: module.description
       });
+
       const newLesson = response.data;
       setActiveModule(newLesson);
-      setCourse(prevCourse => ({
+      
+       setCourse(prevCourse => ({
           ...prevCourse,
           lessons: prevCourse.lessons.map(l => l.title === newLesson.title ? newLesson : l)
       }));
     } catch (error) {
       console.error("Error generating module:", error.response ? error.response.data : error.message);
-      alert("Could not generate module content. Please try again.");
+      if (error.response?.status === 401) {
+          alert("Your session has expired. Please sign in again.");
+          navigate('/sign-in');
+      } else {
+          alert("Could not generate module content. Please try again.");
+      }
     } finally {
       setLoadingModuleTitle(null);
     }
@@ -83,7 +96,7 @@ function CoursePage() {
   }
 
   if (!course) {
-    return <div className="text-center text-xl text-red-500">Could not load the course.</div>;
+    return <div className="text-center text-xl text-red-500">Could not load the course. It may have been deleted or you may not have access.</div>;
   }
   
   return (

@@ -1,39 +1,49 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../api';
 import { CgSpinner } from 'react-icons/cg';
 
 function MyCoursesPage() {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();  
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchCourses = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/courses');
+         const response = await api.get('/courses');
         setCourses(response.data);
       } catch (error) {
         console.error("Failed to fetch courses:", error);
+         if (error.response?.status === 401) {
+          alert("Your session has expired. Please sign in again.");
+          navigate('/sign-in');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchCourses();
-  }, []);
+  }, [navigate]);  
 
-   const handleDelete = async (courseId, event) => {
+  const handleDelete = async (courseId, event) => {
     event.preventDefault(); 
     event.stopPropagation();  
 
     if (window.confirm('Are you sure you want to permanently delete this course?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/courses/${courseId}`);
-         setCourses(currentCourses => currentCourses.filter(course => course._id !== courseId));
+         await api.delete(`/courses/${courseId}`);
+        setCourses(currentCourses => currentCourses.filter(course => course._id !== courseId));
       } catch (error) {
         console.error('Failed to delete course:', error);
-        alert('Could not delete the course. Please try again.');
+        if (error.response?.status === 401) {
+            alert("Your session has expired. Please sign in again.");
+            navigate('/sign-in');
+        } else {
+            alert('Could not delete the course. Please try again.');
+        }
       }
     }
   };
@@ -57,6 +67,9 @@ function MyCoursesPage() {
         <div className="text-center bg-gray-900 border border-gray-700 rounded-lg p-12">
           <h3 className="text-2xl font-bold text-white">No Courses Found</h3>
           <p className="text-gray-400 mt-2">You haven't generated any courses yet. Go create one!</p>
+          <Link to="/" className="mt-6 inline-block bg-blue-600 text-white font-bold px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
+            Generate a New Course
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

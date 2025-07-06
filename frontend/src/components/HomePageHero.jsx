@@ -1,6 +1,6 @@
-import { useState } from 'react';
+ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api'; 
 import { useAuth } from '../context/AuthContext';
 
 function HomePageHero() {
@@ -11,7 +11,7 @@ function HomePageHero() {
   const handleRoadmapGeneration = async (event) => {
     event.preventDefault();
 
-     if (!isAuthenticated) {
+    if (!isAuthenticated) {
       navigate('/sign-in');
       return;
     }
@@ -24,11 +24,18 @@ function HomePageHero() {
 
     setIsLoading(true);
     try {
-       const response = await axios.post('http://localhost:5000/api/generate-roadmap', { topic });
-       navigate(`/course/${response.data._id}`, { state: { course: response.data } });
+       const response = await api.post('/generate-roadmap', { topic });
+      navigate(`/course/${response.data._id}`, { state: { course: response.data } });
+      
     } catch (error) {
-        console.error("Error generating roadmap:", error.response ? error.response.data : error.message);
-      alert("Failed to generate the course roadmap. The server might be down or an unexpected error occurred.");
+      console.error("Error generating roadmap:", error.response ? error.response.data : error.message);
+      
+      if (error.response?.status === 401) {
+          alert("Your session has expired. Please sign in again.");
+          navigate('/sign-in');
+      } else {
+          alert("Failed to generate the course roadmap. The server might be down or an unexpected error occurred.");
+      }
     } finally {
       setIsLoading(false);
     }
